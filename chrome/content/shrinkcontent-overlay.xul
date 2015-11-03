@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://shrinkcontent/locale/shrinkcontent.dtd">
+<overlay id="shrinkcontent-overlay"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/javascript" src="chrome://shrinkcontent/content/utils.js"/>
+	<script type="application/javascript" src="chrome://shrinkcontent/content/shrinkcontent.js"/>
+	<script type="application/javascript" src="chrome://shrinkcontent/content/shrinkcontentui.js"/>
+ 	<popup id="folderPaneContext" onpopupshowing="ShrinkContentUI.showMenu()">
+		<menuitem id="shrinkcontent-shrinkfoldersaction" label="&overlay.shrinkAction;" oncommand="ShrinkContentUI.startProcess(false)"/>
+  	</popup>
+	<popup id="mailContext">
+		<menuitem id="shrinkcontent-shrinkmessagesaction" label="&overlay.shrinkAction;"  oncommand="ShrinkContentUI.startProcess(true)"/>
+  	</popup>
+    <statusbar id="status-bar">
+		<stringbundleset id="shrinkcontent-stringbundleset">
+		    <stringbundle id="shrinkcontent-properties" src="chrome://shrinkcontent/locale/shrinkcontent.properties"/>
+		</stringbundleset>
+	    <hbox id="shrinkcontent-statusbarsection"  hidden="true">
+	   		<statusbarpanel id="shrinkcontent-statusbar" class="statusbarpanel-iconic-text" src="chrome://shrinkcontent/skin/cancel_icon.png"
+	   		 onclick="ShrinkContentUI.cancelProcessing()"/>
+		</hbox>
+	</statusbar>
+</overlay>

@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE prefwindow SYSTEM "chrome://shrinkcontent/locale/shrinkcontent.dtd">
+
+<prefwindow id="shrinkContentOptions"
+            xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+            title="&prefs.title;">
+   <script type="application/javascript" src="chrome://shrinkcontent/content/options.js"/>
+  <prefpane id="prefpane" onpaneload="initOptions();">
+    <preferences>
+      <preference id="pref_header_removeReceived"
+                  name="extensions.shrinkcontent.header_removeReceived"
+                  type="bool"/>
+      <preference id="pref_header_removeExtras"
+                  name="extensions.shrinkcontent.header_removeExtras"
+                  type="bool"/>
+      <preference id="pref_header_removeSignatures"
+                  name="extensions.shrinkcontent.header_removeSignatures"
+                  type="bool"/>
+      <preference id="pref_alternativeTextType"
+                  name="extensions.shrinkcontent.alternativeTextType"
+                  type="string"/>
+      <preference id="pref_removeSignature"
+                  name="extensions.shrinkcontent.removeSignature"
+                  type="bool"/>
+      <preference id="pref_removeEmbeddedContent"
+                  name="extensions.shrinkcontent.removeEmbeddedContent"
+                  type="bool"/>
+      <preference id="pref_removeQuotedMessages"
+                  name="extensions.shrinkcontent.removeQuotedMessages"
+                  type="bool"/>
+      <preference id="pref_maxQuoteLines"
+                  name="extensions.shrinkcontent.maxQuoteLines"
+                  type="int"/>
+      <preference id="pref_removeAttachments"
+                  name="extensions.shrinkcontent.removeAttachments"
+                  type="bool"/>
+      <preference id="pref_saveAttachment"
+                  name="extensions.shrinkcontent.saveAttachment"
+                  type="bool"/>
+      <preference id="pref_attachmentFolder"
+                  name="extensions.shrinkcontent.attachmentFolder"
+                  type="file"/>
+      <preference id="pref_moveToTrash"
+                  name="extensions.shrinkcontent.moveToTrash"
+                  type="bool"/>
+    </preferences>
+    <groupbox>
+      <stringbundleset id="shrinkcontent-stringbundleset">
+        <stringbundle id="shrinkcontent-properties" src="chrome://shrinkcontent/locale/shrinkcontent.properties"/>
+      </stringbundleset>
+        <groupbox>
+        <caption label="&prefs.header_group;"/>
+        <checkbox id="header_removeReceived"
+                  label="&prefs.header_removeReceived;"
+                  preference="pref_header_removeReceived"/>
+        <checkbox id="header_removeExtras"
+                  label="&prefs.header_removeExtras;"
+                  preference="pref_header_removeExtras"/>
+        <checkbox id="header_removeSignatures"
+                  label="&prefs.header_removeSignatures;"
+                  preference="pref_header_removeSignatures"/>
+      </groupbox>
+      <groupbox>
+        <caption label="&prefs.plainTextContent_group;"/>
+        <hbox align="center">
+          <label value="&prefs.alternativeTextType;"/>
+          <menulist label="&prefs.alternativeTextType;" preference="pref_alternativeTextType">
+            <menupopup>
+              <menuitem label="&prefs.alternativeTextType_all;" value="all"/>
+              <menuitem label="&prefs.alternativeTextType_plain;" value="plain"/>
+              <menuitem label="&prefs.alternativeTextType_html;" value="html"/>
+            </menupopup>
+          </menulist>
+        </hbox>
+          <hbox align="center">
+          <checkbox id="removeQuotedMessages"
+                      label="&prefs.removeQuotedMessages;"
+                      preference="pref_removeQuotedMessages"
+                      onclick="toggleDisabled('maxQuoteLines')"/>
+            <textbox id="maxQuoteLines" type="number"
+                    preference="pref_maxQuoteLines"/>
+            <label value="&prefs.maxQuoteLinesEnd;"/>
+          </hbox>
+         <checkbox id="removeSignature"
+                    label="&prefs.removeSignature;"
+                    preference="pref_removeSignature"/>
+      </groupbox>
+      <groupbox>
+        <caption label="&prefs.attachment_group;"/>
+        <checkbox id="removeEmbeddedContent"
+                  label="&prefs.removeEmbeddedContent;"
+                  preference="pref_removeEmbeddedContent"/>
+        <checkbox id="removeAttachments"
+                  label="&prefs.removeAttachments;"
+                  preference="pref_removeAttachments"/>
+          <hbox align="center">
+            <checkbox id="saveAttachment"
+              label="&prefs.saveAttachment;"
+              onclick="toggleDisabled('attachmentFolder');toggleDisabled('attachmentFolderSelect');"
+              preference="pref_saveAttachment"/>
+             <textbox id="attachmentFolder" width="300" readonly="true"/>
+             <button id="attachmentFolderSelect"
+              oncommand="selectAttachmentFolder();"
+              label="&prefs.attachmentButtonLabel;"/>
+          </hbox>
+      </groupbox>
+      <groupbox>
+        <caption label="&prefs.originalMessage_group;"/>
+         <checkbox id="moveToTrash"
+                    label="&prefs.moveToTrash;"
+                    preference="pref_moveToTrash"/>
+       </groupbox>
+    </groupbox>
+  </prefpane>
+</prefwindow>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE dialog SYSTEM "chrome://shrinkcontent/locale/shrinkcontent.dtd">
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<dialog
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	id="shrinkcontent-resultdialog"
+    onload="ShrinkContentUI.initResultDialog();"
+    buttons="accept"
+  	buttonlabelaccept="&dialog.ok;"
+  title="&dialog.title;">
+	 <stringbundleset id="shrinkcontent-stringbundleset">
+	 	<stringbundle id="shrinkcontent-properties" src="chrome://shrinkcontent/locale/shrinkcontent.properties"/>
+	</stringbundleset>
+	<script type="application/javascript" src="chrome://shrinkcontent/content/utils.js"/>
+	<script type="application/javascript" src="chrome://shrinkcontent/content/shrinkcontentui.js"/>
+	<description id="shrinkcontent-resultdialogmessage" width="650"/>
+	<vbox id="shrinkcontent-resultdialogerrorsection">
+		<separator/>
+		<description id="shrinkcontent-resultdialogerrorlabel" style="font-weight: bold;" width="650"/>
+		<hbox>
+			<label id="shrinkcontent-resultdialogerrordetails" value="&dialog.details;" onclick="ShrinkContentUI.toggleErrorDetails()"/>
+		</hbox>
+		<textbox id="shrinkcontent-resultdialogerror" multiline="true" readonly="true" rows="25" hidden="true"/>
+	</vbox>
+</dialog>

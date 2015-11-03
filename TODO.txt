@@ -1,0 +1,17 @@
+Final :
+- enchaînement / annulation toujours pas propre
+- ne fonctionne pas sur IMAP si les messages ne sont pas stockés en local ?
+- click droit sur folder pas admissible quand on vient de lancer le process
+
+- publier sur github
+- publier sur Mozilla
+
+Autres idées d'extension :
+- Display Folder Size
+sur la vue des folders, pouvoir ajouter sur la vue des messages le nombre de messages total, le nombre de messages du noeud et la taille totale / taille du noeud
++ pourcentage de sender par folder ?
+- Count in Search (filtres de recherche, cf expression search)
+	. number of recipients
+	. number of messages by sender
+	. number of words
+	. number of links

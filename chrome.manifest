@@ -1,0 +1,6 @@
+content		shrinkcontent  						chrome/content/
+skin  		shrinkcontent  		classic/1.0		chrome/skin/
+locale  	shrinkcontent 		en-US 			chrome/locale/en-US/
+locale  	shrinkcontent 		fr-FR 			chrome/locale/fr-FR/
+
+overlay chrome://messenger/content/messenger.xul chrome://shrinkcontent/content/shrinkcontent-overlay.xul

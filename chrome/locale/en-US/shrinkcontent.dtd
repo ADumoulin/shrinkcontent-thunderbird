@@ -1,0 +1,27 @@
+<!ENTITY prefs.title "Shrink Message Content options">
+<!ENTITY prefs.alternativeTextType "If both text versions are present :">
+<!ENTITY prefs.alternativeTextType_all "Keep both">
+<!ENTITY prefs.alternativeTextType_plain "Keep plain text only">
+<!ENTITY prefs.alternativeTextType_html "Keep HTML text only">
+<!ENTITY prefs.removeSignature "Remove appended signatures">
+<!ENTITY prefs.removeEmbeddedContent "Remove embedded content (images, videos, ...)">
+<!ENTITY prefs.removeQuotedMessages "Limit quoted messages to">
+<!ENTITY prefs.maxQuoteLinesEnd "lines">
+<!ENTITY prefs.removeAttachments "Remove attachments">
+<!ENTITY prefs.moveToTrash "Place original message in trash">
+<!ENTITY prefs.saveAttachment "Save attachments to folder">
+<!ENTITY prefs.header_removeReceived "Remove 'Received' fields">
+<!ENTITY prefs.header_removeSignatures "Remove DKIM signatures">
+<!ENTITY prefs.header_removeExtras "Remove extra fields">
+<!ENTITY prefs.header_group "Message header">
+<!ENTITY prefs.plainTextContent_group "Plain Text content">
+<!ENTITY prefs.attachment_group "Attachments">
+<!ENTITY prefs.originalMessage_group "Original message">
+<!ENTITY prefs.attachmentButtonLabel "Browse...">
+
+<!ENTITY dialog.title "Shrink selected messages">
+<!ENTITY dialog.ok "Ok">
+<!ENTITY dialog.cancel "Cancel">
+<!ENTITY dialog.details "Details">
+
+<!ENTITY overlay.shrinkAction "Shrink">

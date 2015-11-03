@@ -1,0 +1,12 @@
+pref("extensions.shrinkcontent.header_removeReceived", true);
+pref("extensions.shrinkcontent.header_removeExtras", true);
+pref("extensions.shrinkcontent.header_removeSignatures", true);
+pref("extensions.shrinkcontent.alternativeTextType", "plain");
+pref("extensions.shrinkcontent.removeSignature", false);
+pref("extensions.shrinkcontent.removeEmbeddedContent", true);
+pref("extensions.shrinkcontent.removeQuotedMessages", true);
+pref("extensions.shrinkcontent.maxQuoteLines", 5);
+pref("extensions.shrinkcontent.removeAttachments", false);
+pref("extensions.shrinkcontent.moveToTrash", true);
+pref("extensions.shrinkcontent.saveAttachment", false);
+pref("extensions.shrinkcontent.attachmentFolder", null);

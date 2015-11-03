@@ -1,0 +1,27 @@
+<!ENTITY prefs.title "Shrink Message Content options">
+<!ENTITY prefs.alternativeTextType "Si les deux versions du texte sont présentes :">
+<!ENTITY prefs.alternativeTextType_all "Garder les deux">
+<!ENTITY prefs.alternativeTextType_plain "Garder uniquement le texte brut">
+<!ENTITY prefs.alternativeTextType_html "Garder uniquement le HTML">
+<!ENTITY prefs.removeSignature "Supprimer la signature">
+<!ENTITY prefs.removeEmbeddedContent "Supprimer le contenu inséré dans le message (images, vidéos, ...)">
+<!ENTITY prefs.removeQuotedMessages "Limiter les citations de messages à">
+<!ENTITY prefs.maxQuoteLinesEnd "lignes">
+<!ENTITY prefs.removeAttachments "Supprimer les pièces jointes">
+<!ENTITY prefs.moveToTrash "Placer le message original dans la corbeille">
+<!ENTITY prefs.saveAttachment "Sauvegarder les pièces jointes dans le répertoire">
+<!ENTITY prefs.header_removeReceived "Supprimer le champ 'Received'">
+<!ENTITY prefs.header_removeSignatures "Supprimer les signatures DKIM">
+<!ENTITY prefs.header_removeExtras "Supprimer les champs facultatifs">
+<!ENTITY prefs.header_group "En-tête du message">
+<!ENTITY prefs.plainTextContent_group "Contenu en texte brut">
+<!ENTITY prefs.attachment_group "Pièces jointes">
+<!ENTITY prefs.originalMessage_group "Message original">
+<!ENTITY prefs.attachmentButtonLabel "Parcourir...">
+
+<!ENTITY dialog.title "Réduire les messages sélectionnés">
+<!ENTITY dialog.ok "Ok">
+<!ENTITY dialog.cancel "Annuler">
+<!ENTITY dialog.details "Détails">
+
+<!ENTITY overlay.shrinkAction "Réduire">
