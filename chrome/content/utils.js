@@ -124,6 +124,69 @@ OutputStreamWriter.prototype.close = function() {
 };
 
 /*
+	a message enumerator to encapsulate enumeration over subfolders
+*/
+
+function MessageEnumerator() {
+
+}
+
+MessageEnumerator.prototype.init = function(selection,isFolder) {
+	if (isFolder) {
+		this.messageList = [];
+		this.folderList = [];
+		if (selection) {
+			// fill list with subfolders
+			var foldersToVisit = selection;
+			while (foldersToVisit.length > 0) {
+				var folder = foldersToVisit.shift();
+				folder.updateFolder(null);
+				this.folderList.push(folder);
+				if (folder.hasSubFolders) {
+					var folderEnumerator = folder.subFolders;
+					while (folderEnumerator.hasMoreElements()) {
+				  		var subfolder = folderEnumerator.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
+				  		foldersToVisit.push(subfolder);
+					}
+				}
+			}
+		}
+	}
+	else {
+		this.messageList = selection && selection.length > 0 ? selection : [];
+		this.folderList = [];
+	}
+};
+
+MessageEnumerator.prototype.hasNext = function() {
+	if (this.messageList.length == 0) {
+		// get messages from next folder
+		while (this.folderList.length > 0) {
+			var folder = this.folderList.shift();
+			var enumMessages = folder.messages;
+			while (enumMessages.hasMoreElements()) {
+				var msgHdr = enumMessages.getNext().QueryInterface(Components.interfaces.nsIMsgDBHdr);
+				this.messageList.push(msgHdr);
+			}
+			if (this.messageList.length > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	return true;
+};
+
+MessageEnumerator.prototype.next = function() {
+	return this.messageList.shift();
+};
+
+MessageEnumerator.prototype.close = function() {
+	this.messageList = [];
+	this.folderList = [];
+};
+
+/*
 	decoding functions for standard mime encoding
 */
 function decode(encoding,data) {

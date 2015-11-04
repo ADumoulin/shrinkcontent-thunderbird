@@ -1,7 +1,6 @@
 Final :
-- enchaînement / annulation toujours pas propre
+- batcher les messages de la corbeille
 - ne fonctionne pas sur IMAP si les messages ne sont pas stockés en local ?
-- click droit sur folder pas admissible quand on vient de lancer le process
 
 - publier sur github
 - publier sur Mozilla

@@ -36,9 +36,11 @@ var ShrinkContent = {
 		[ "attachmentFolder",Components.interfaces.nsILocalFile,"removeAttachments" ]
 	],
 	options: {},
+	messageEnumerator: new MessageEnumerator(),
+	pendingDeletions: { "folder": null, "messages": Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray) },
 	tempDir: null,
-	notifyStart:function(total){},
 	notifyUpdate:function(result){},
+	notifyFinish:function(result){},
 	prefs: Services.prefs.getBranch("extensions.shrinkcontent."),
 	startup: function()
  	{
@@ -67,84 +69,32 @@ var ShrinkContent = {
 			}
 		}
 	},
- 	shrinkMessages: function() { // shrink selected messages, called from UI
+ 	shrinkMessages: function(selection,numberSelected,isFolder) {
 		ShrinkContent.retrieveOptions();
+		ShrinkContent.status = ShrinkContent.RUNNING_STATUS;
 		var result = { 
-			"numberSelected":0,
+			"numberSelected": numberSelected,
 			"processed":0,
 			"succeed":0,
 			"initialSize":0,
 			"finalSize":0,
 			"errors":[]
 		};
-		var selectedMessages = gFolderDisplay.selectedMessages;
-		var numberSelected = selectedMessages.length;
- 		if (ShrinkContent.notifyStart(numberSelected)) {
-	 		result["numberSelected"]=numberSelected;
-	 		for (var i=0;i<numberSelected;i++) {
-				var msgHdr = selectedMessages[i];
-				try {
-					ShrinkContent.shrinkMessage(msgHdr,result);
-		 		}
-		 		catch (ex) {
-					result["processed"]++;
-	 				result["errors"].push(ShrinkContent.errorMessage(msgHdr,ex));
-			 	}
-		 	}
-	 	}
+		ShrinkContent.messageEnumerator.init(selection,isFolder);
+		ShrinkContent.shrinkNextMessage(result);
  	},
- 	shrinkFolders: function() { // shrink selected folders, called from UI
-		ShrinkContent.retrieveOptions();
-		var result = { 
-			"numberSelected":0,
-			"processed":0,
-			"succeed":0,
-			"initialSize":0,
-			"finalSize":0,
-			"errors":[]
-		};
-		var selectedFolders = gFolderTreeView.getSelectedFolders();
-		var numberSelected = 0;
-		if (selectedFolders) {
-			for (var i=0;i<selectedFolders.length;i++) {
-				numberSelected += selectedFolders[i].getTotalMessages(true);
-			}
+	shrinkNextMessage: function(result) {
+		if (ShrinkContent.status == ShrinkContent.CANCEL_STATUS || !ShrinkContent.messageEnumerator.hasNext()) {
+			// done or cancelled
+			ShrinkContent.status = ShrinkContent.READY_STATUS;
+			ShrinkContent.messageEnumerator.close();
+			ShrinkContent.processDeletion(null,true); // force pending deletions
+			ShrinkContent.notifyFinish(result);
+			return;
 		}
-		if (ShrinkContent.notifyStart(numberSelected)) {
-	 		result["numberSelected"]=numberSelected;
-			for (var i=0;i<selectedFolders.length;i++) {
-				ShrinkContent.shrinkFolder(selectedFolders[i],result);
-			}
-		}
-	},
- 	shrinkFolder: function(folder,result) {
-		// process folder messages
-		var messageEnumerator = folder.messages;
-		var nbmax = folder.getTotalMessages(false);
-		var nb = 0;
-		while (messageEnumerator.hasMoreElements() && nb < nbmax) {
-			var msgHdr= messageEnumerator.getNext().QueryInterface(Components.interfaces.nsIMsgDBHdr);
-			nb++;
-			try {
-				ShrinkContent.shrinkMessage(msgHdr,result);
-	 		}
-	 		catch (ex) {
-				result["processed"]++;
-	 			result["errors"].push(ShrinkContent.errorMessage(msgHdr,ex));
-	 		}
-		}
-		// process folder subfolders
-	    if (folder.hasSubFolders) {
-			var folderEnumerator = folder.subFolders;
-		    while (folderEnumerator.hasMoreElements()) {
-		    	var subfolder = folderEnumerator.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
-		    	ShrinkContent.shrinkFolder(subfolder,result);
-		    }
-		}
- 	},
-	shrinkMessage: function(msgHdr,result) {
-		var initialSize = 0;
-		var finalSize = 0;
+		result["processed"]++;
+		ShrinkContent.notifyUpdate(result);
+		var msgHdr = ShrinkContent.messageEnumerator.next();
 		// create a temporary file
 		var tempFile = ShrinkContent.tempDir.clone();
 		tempFile.append("shrinkcontent_temp.eml");
@@ -159,11 +109,11 @@ var ShrinkContent = {
 			var scriptInput = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance();
 			var inStream = scriptInput.QueryInterface(Components.interfaces.nsIScriptableInputStream);
 			inStream.init(msgStream);
-			msgService.streamMessage(messageURI,msgStream,msgWindow, null, false, null);
+			msgService.streamMessage(messageURI,msgStream,null, null, false, null);
 			//  -- main call : process message --
-			initialSize = msgHdr.messageSize;
+			var initialSize = msgHdr.messageSize;
 			ShrinkContent.processMessage(inStream,outStream);
-			finalSize = tempFile.fileSize;
+			var finalSize = tempFile.fileSize;
 			// create message from temp file and clean up
 			var list = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
 			list.appendElement(msgHdr, false);
@@ -172,16 +122,13 @@ var ShrinkContent = {
 			// copy message
 			Components.classes["@mozilla.org/messenger/messagecopyservice;1"].getService(Components.interfaces.nsIMsgCopyService)
 			.CopyFileMessage(fileSpec, msgHdr.folder, null, false, msgHdr.flags, msgHdr.getStringProperty("keywords"),
-				{ OnStartCopy: function() { if (ShrinkContent.status == ShrinkContent.CANCEL_STATUS) { ShrinkContent.messageCanceled(tempFile,result); } },
-				  OnStopCopy: function (status) { ShrinkContent.messageDone(tempFile,msgHdr,result,initialSize,finalSize,status); }
-				}, msgWindow);
+				{ OnStopCopy: function (status) { ShrinkContent.messageDone(tempFile,msgHdr,result,initialSize,finalSize,status); } }, msgWindow);
 		}
 		catch(ex) {
-			// delete temp file
+			result["processed"]++;
+			result["errors"].push(ShrinkContent.errorMessage(msgHdr,ex));
 			tempFile.remove(false);
-			throw ex;
 		}
-		return [ initialSize, finalSize ];
 	},
 	processMessage: function(inStream, outStream) {
 		var options = ShrinkContent.options;
@@ -521,28 +468,30 @@ var ShrinkContent = {
 		}
 		return [ skip, line ];
 	},
-	messageCanceled: function(tempFile,result) {
-		if (tempFile.exists()) {
-			// the only efficient way to cancel the asynchronous copy calls is to delete the source file
-			tempFile.remove(false);
-		}
-		result["processed"]++;
-		ShrinkContent.notifyUpdate(result);
-	},
 	messageDone: function(tempFile,msgHdr,result,initialSize,finalSize,status) {
-		if (tempFile.exists()) { // if not present, action has been canceled
-			tempFile.remove(false);
-			if (status == 0) {
-				var messageList = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
-				messageList.appendElement(msgHdr, false);
-				msgHdr.folder.deleteMessages(messageList,null,!ShrinkContent.options["moveToTrash"],true,null,false);
-				result["succeed"]++;
-				result["initialSize"] += initialSize;
-				result["finalSize"] += finalSize;
-			}
+		tempFile.remove(false);
+		if (status == 0) {
+			result["succeed"]++;
+			result["initialSize"] += initialSize;
+			result["finalSize"] += finalSize;
+			ShrinkContent.processDeletion(msgHdr,false);
 		}
-		result["processed"]++;
-		ShrinkContent.notifyUpdate(result);
+		ShrinkContent.shrinkNextMessage(result);
+	},
+	processDeletion: function(msgHdr, forcePurge) { // delete only when a certain number of messages is present
+		var messageList = ShrinkContent.pendingDeletions["messages"];
+		var folder = ShrinkContent.pendingDeletions["folder"];
+		// purge pending deletions if limit is reached or other folder traversed
+		var purge = forcePurge || (messageList.length == 100) || (folder && msgHdr.folder != folder);
+		if (purge) {
+			folder.deleteMessages(messageList,null,!ShrinkContent.options["moveToTrash"],true,null,false);
+			ShrinkContent.pendingDeletions["messages"] = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+			ShrinkContent.pendingDeletions["folder"] = null;
+			}
+		if (msgHdr) {
+			messageList.appendElement(msgHdr, false);
+			ShrinkContent.pendingDeletions["folder"] = msgHdr.folder;
+		}
 	},
 	removedAttachmentSubstitutionText: function(filename) {
 		var text = "Content-Type: text/x-moz-deleted; name=\"Deleted: "+ filename + "\"\r\n";

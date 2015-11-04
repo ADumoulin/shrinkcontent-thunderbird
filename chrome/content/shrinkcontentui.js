@@ -7,52 +7,52 @@
 var ShrinkContentUI = {
 	startup : function() {
 		if (document.getElementById("shrinkcontent-statusbarsection")) { // install callbacks for main process, in overlay window only
-			ShrinkContent.notifyStart= function(numberSelected) {
-				var dialogResult = { "numberSelected": numberSelected, "ready": ShrinkContent.status == ShrinkContent.READY_STATUS };
-				window.openDialog('chrome://shrinkcontent/content/shrinkcontent-confirmdialog.xul',"","chrome,modal,centerscreen,resizable",dialogResult);
-	 			if (!dialogResult.cancel) {
-		 			var strbundle = document.getElementById("shrinkcontent-properties");
-					var message = strbundle.getFormattedString("progressMessage", [ 0, numberSelected ]);
-					document.getElementById('shrinkcontent-statusbar').label = message;
-					document.getElementById('shrinkcontent-statusbarsection').hidden = false;
-					ShrinkContent.status = ShrinkContent.RUNNING_STATUS;
-				}
-				return !dialogResult.cancel;
-			};
 			ShrinkContent.notifyUpdate = function(result) {
-				var processed = result["processed"];
-				var numberSelected = result["numberSelected"];
-				var strbundle = document.getElementById("shrinkcontent-properties");
-				var statusbar = document.getElementById('shrinkcontent-statusbar');
-				if (ShrinkContent.status == ShrinkContent.CANCEL_STATUS) {
-					var newLabel = strbundle.getString("cancelMessage");
-					statusbar.label = newLabel;
-					statusbar.src = null;
-				}
-				else {
+				if (ShrinkContent.status == ShrinkContent.RUNNING_STATUS) {
+					var processed = result["processed"];
+					var numberSelected = result["numberSelected"];
+					var strbundle = document.getElementById("shrinkcontent-properties");
+					var statusbar = document.getElementById('shrinkcontent-statusbar');
 					var newLabel = strbundle.getFormattedString("progressMessage", [ processed, numberSelected ]);
 					statusbar.label = newLabel;
 				}
-				if (processed == numberSelected) { // done
-					document.getElementById('shrinkcontent-statusbarsection').hidden = true;
-					var dialogResult = { "result": result };
-					window.openDialog('chrome://shrinkcontent/content/shrinkcontent-resultdialog.xul',"","chrome,modal,centerscreen,resizable",dialogResult);
-					statusbar.src = "chrome://shrinkcontent/skin/cancel_icon.png";
-					ShrinkContent.status = ShrinkContent.READY_STATUS;
-				}
+ 			};
+			ShrinkContent.notifyFinish = function(result) {
+				document.getElementById('shrinkcontent-statusbarsection').hidden = true;
+				var dialogResult = { "result": result };
+				window.openDialog('chrome://shrinkcontent/content/shrinkcontent-resultdialog.xul',"","chrome,modal,centerscreen,resizable",dialogResult);
+				statusbar.src = "chrome://shrinkcontent/skin/cancel_icon.png";
  			};
 		}
 	},
 	startProcess: function(isMessageSelection) {
+		var numberSelected = 0;
+		var selection;
 		if (isMessageSelection) {
-			ShrinkContent.shrinkMessages();
+			selection = gFolderDisplay.selectedMessages;
+			numberSelected = selection.length;
 		}
 		else {
-			ShrinkContent.shrinkFolders();
+			selection = gFolderTreeView.getSelectedFolders();
+			if (selection) {
+				for (var i=0;i<selection.length;i++) {
+					numberSelected += selection[i].getTotalMessages(true);
+				}
+			}
+		}
+		var dialogResult = { "numberSelected": numberSelected, "ready": ShrinkContent.status == ShrinkContent.READY_STATUS };
+		window.openDialog('chrome://shrinkcontent/content/shrinkcontent-confirmdialog.xul',"","chrome,modal,centerscreen,resizable",dialogResult);
+		if (!dialogResult.cancel) {
+ 			var strbundle = document.getElementById("shrinkcontent-properties");
+			var message = strbundle.getFormattedString("progressMessage", [ 0, numberSelected ]);
+			document.getElementById('shrinkcontent-statusbar').label = message;
+			document.getElementById('shrinkcontent-statusbarsection').hidden = false;
+			ShrinkContent.shrinkMessages(selection,numberSelected,!isMessageSelection);
 		}
 	},
 	cancelProcessing: function() {
 		ShrinkContent.status = ShrinkContent.CANCEL_STATUS;
+		document.getElementById('shrinkcontent-statusbarsection').hidden = true;
 	},
 	showMenu: function() {
 		var show = true;
