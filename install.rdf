@@ -7,6 +7,7 @@
     <em:id>shrinkcontent@tbextension</em:id>
     <em:name>Shrink Message Content</em:name>
     <em:version>1.0</em:version>
+    <em:type>2</em:type>
     <em:creator>adumoulin</em:creator>
     <em:optionsURL>chrome://shrinkcontent/content/options.xul</em:optionsURL>
 

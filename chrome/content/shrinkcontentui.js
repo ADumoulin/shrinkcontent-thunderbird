@@ -18,41 +18,81 @@ var ShrinkContentUI = {
 				}
  			};
 			ShrinkContent.notifyFinish = function(result) {
+ 				var autoSyncManager = Components.classes["@mozilla.org/imap/autosyncmgr;1"].getService(Components.interfaces.nsIAutoSyncManager);
+				autoSyncManager.resume(); // resume autosync manager
 				document.getElementById('shrinkcontent-statusbarsection').hidden = true;
 				var dialogResult = { "result": result };
 				window.openDialog('chrome://shrinkcontent/content/shrinkcontent-resultdialog.xul',"","chrome,modal,centerscreen,resizable",dialogResult);
 				statusbar.src = "chrome://shrinkcontent/skin/cancel_icon.png";
- 			};
+			};
 		}
 	},
 	startProcess: function(isMessageSelection) {
 		var numberSelected = 0;
 		var selection;
+		var folderSelection = [];
 		if (isMessageSelection) {
 			selection = gFolderDisplay.selectedMessages;
 			numberSelected = selection.length;
+			if (numberSelected > 0) {
+				folderSelection.push(selection[0].folder);
+			}
 		}
 		else {
 			selection = gFolderTreeView.getSelectedFolders();
 			if (selection) {
 				for (var i=0;i<selection.length;i++) {
 					numberSelected += selection[i].getTotalMessages(true);
+					folderSelection.push(selection[i]);
 				}
 			}
 		}
-		var dialogResult = { "numberSelected": numberSelected, "ready": ShrinkContent.status == ShrinkContent.READY_STATUS };
-		window.openDialog('chrome://shrinkcontent/content/shrinkcontent-confirmdialog.xul',"","chrome,modal,centerscreen,resizable",dialogResult);
-		if (!dialogResult.cancel) {
- 			var strbundle = document.getElementById("shrinkcontent-properties");
-			var message = strbundle.getFormattedString("progressMessage", [ 0, numberSelected ]);
-			document.getElementById('shrinkcontent-statusbar').label = message;
-			document.getElementById('shrinkcontent-statusbarsection').hidden = false;
-			ShrinkContent.shrinkMessages(selection,numberSelected,!isMessageSelection);
+		// download messages to offline store to prevent stream blocking
+		var forceDownload = function(folderList,withSubFolders) {
+			if (folderList.length == 0 || folderList[0].server.type != "imap") { // fire up dialog
+				var dialogResult = { "numberSelected": numberSelected, "ready": ShrinkContent.status == ShrinkContent.READY_STATUS };
+				window.openDialog('chrome://shrinkcontent/content/shrinkcontent-confirmdialog.xul',"","chrome,modal,centerscreen,resizable",dialogResult);
+				if (!dialogResult.cancel) {
+		 			var strbundle = document.getElementById("shrinkcontent-properties");
+					var message = strbundle.getFormattedString("progressMessage", [ 0, numberSelected ]);
+					document.getElementById('shrinkcontent-statusbar').label = message;
+					document.getElementById('shrinkcontent-statusbarsection').hidden = false;
+					ShrinkContent.shrinkMessages(selection,numberSelected,!isMessageSelection);
+				}
+			}
+			else {
+				var folder = folderList.pop();
+				if (withSubFolders && folder.hasSubFolders) {
+					var folderEnumerator = folder.subFolders;
+					while (folderEnumerator.hasMoreElements()) {
+				  		var subfolder = folderEnumerator.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
+				  		folderList.push(subfolder);
+					}
+				}
+				try {
+					folder.downloadAllForOffline({ 
+						OnStopRunningUrl : function(url,status) {
+							forceDownload(folderList,withSubFolders);
+						}
+					},msgWindow);
+				}
+				catch (ex) {
+					forceDownload(folderList,withSubFolders); // continue if sync doesn't work
+				}
+			}
 		}
+		forceDownload(folderSelection,!isMessageSelection);
+		var autoSyncManager = Components.classes["@mozilla.org/imap/autosyncmgr;1"].getService(Components.interfaces.nsIAutoSyncManager);
+		autoSyncManager.pause(); // stop autosync manager as it tends to block streams
+
 	},
 	cancelProcessing: function() {
-		ShrinkContent.status = ShrinkContent.CANCEL_STATUS;
-		document.getElementById('shrinkcontent-statusbarsection').hidden = true;
+		var dialogResult = { "cancel": true };
+		window.openDialog('chrome://shrinkcontent/content/shrinkcontent-confirmdialog.xul',"","chrome,modal,centerscreen,resizable",dialogResult);
+		if (!dialogResult.cancel) {
+	 		ShrinkContent.status = ShrinkContent.CANCEL_STATUS;
+			document.getElementById('shrinkcontent-statusbarsection').hidden = true;
+		}
 	},
 	showMenu: function() {
 		var show = true;
@@ -61,9 +101,15 @@ var ShrinkContentUI = {
 			var cannotProcess = false;
 			for (var i=0;i<selectedFolders.length;i++) {
 				var folder = selectedFolders[i];
-				if (!folder.canFileMessages) {
-					cannotProcess = true;
-					break;
+				try {
+					var server = folder.server.QueryInterface(Components.interfaces.nsIImapIncomingServer);
+					if (!(folder.canFileMessages && server.offlineDownload)) { // doesn't work if messages are not offline
+						cannotProcess = true;
+						break;
+					}
+				}
+				catch (ex) {
+					// ignore, might not be IMAP server
 				}
 			}
 			show = !cannotProcess;
@@ -73,9 +119,13 @@ var ShrinkContentUI = {
 	initConfirmDialog: function() {
  		var numberSelected = window.arguments[0].numberSelected;
  		var ready = window.arguments[0].ready;
+ 		var cancel = window.arguments[0].cancel;
  		var strbundle = document.getElementById("shrinkcontent-properties");
 		var message;
- 		if (!ready) {
+ 		if (cancel) {
+			message = strbundle.getString("confirmCancelMessage");
+ 		}
+ 		else if (!ready) {
 			message = strbundle.getString("confirmInProgressMessage");
 			document.getElementById("shrinkcontent-confirmdialog").buttons = "accept";
 	 		window.arguments[0].overridecancel = true;

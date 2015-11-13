@@ -14,9 +14,12 @@ It features :
 * removing content like quoted messages or signatures (for plain text only)
 * processing large number of messages on IMAP and local folders both
 
+WARNING :
+This add-on permanently removes content from your messages, unless they've been moved to trash with the proper option activated and you restore them manually. Is it strongly recommended to back up your messages in a local folder before attempting to shrink them.
+
 Known limitations
 -----------------
-The extension does not work with IMAP accounts if you select more than one email at a time and the emails are not stored locally on your computer. This seems to arise from a bug in Thunderbird, so I see no way of circumventing it.
+The extension does not work with IMAP accounts that are not stored locally.
 
 Installation
 ------------
@@ -31,6 +34,8 @@ then select it through the "Install add-on from file" options in the add-on mana
 Usage
 -----
 The plugin is easy enough to use : adjust the preferences to activate the options you need, select a bunch of folder or messages and choose "Shrink" from the right-click context menu.
+
+To speed up processing of IMAP accounts, it is strongly recommended to switch the messages details to an unrelated folder or view once the shrinking has been started, otherwise the automatic synching of the interface will have a heavy impact on overall speed.
 
 Here is a detail of the options you can choose from.
 
